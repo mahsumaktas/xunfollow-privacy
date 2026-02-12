@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X Unfollow Tool</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="app">
+    <!-- Header with Menu -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">&Xopf;</span>
+          <span class="logo-text" data-i18n="title">Unfollow Tool</span>
+        </div>
+        <div class="header-actions">
+          <button id="themeToggleBtn" class="icon-btn" aria-label="Toggle theme">
+            <svg id="themeToggleIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+            </svg>
+          </button>
+          <button id="menuBtn" class="icon-btn" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="12" cy="19" r="2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main" id="mainView">
+      <!-- Status Badge -->
+      <div id="statusBadge" class="status-badge hidden">
+        <span id="statusIcon"></span>
+        <span id="statusText"></span>
+      </div>
+
+      <!-- Mode Selection Cards -->
+      <div class="mode-cards">
+        <label class="mode-card" data-mode="non-followers">
+          <input type="radio" name="mode" value="non-followers" checked>
+          <div class="mode-card-content">
+            <div class="mode-icon">&#x1F464;</div>
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="modeNonFollowers">Non-Followers</span>
+              <span class="mode-desc" data-i18n="modeNonFollowersDesc">Only unfollow non-followers</span>
+            </div>
+            <div class="mode-check">&#x2713;</div>
+          </div>
+        </label>
+        <label class="mode-card" data-mode="all">
+          <input type="radio" name="mode" value="all">
+          <div class="mode-card-content">
+            <div class="mode-icon">&#x1F465;</div>
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="modeAll">Everyone</span>
+              <span class="mode-desc" data-i18n="modeAllDesc">Unfollow all</span>
+            </div>
+            <div class="mode-check">&#x2713;</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Speed & Limit Row -->
+      <div class="settings-row">
+        <div class="setting-item">
+          <label class="setting-label" data-i18n="menuSpeed">Speed</label>
+          <select id="speedSelect" class="setting-select">
+            <option value="2" data-i18n="speedSlow">Slow</option>
+            <option value="1" selected data-i18n="speedNormal">Normal</option>
+            <option value="0.5" data-i18n="speedFast">Fast</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label class="setting-label" data-i18n="limitLabel">Limit</label>
+          <input type="number" id="limitInput" class="setting-input" min="0" value="0"
+            data-i18n-placeholder="limitPlaceholder">
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-value" id="unfollowedCount">0</span>
+          <span class="stat-label" data-i18n="statUnfollowed">Unfollowed</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value" id="skippedCount">0</span>
+          <span class="stat-label" data-i18n="statSkipped">Skipped</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value" id="scannedCount">0</span>
+          <span class="stat-label" data-i18n="statScanned">Scanned</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-area">
+        <button id="startBtn" class="action-btn action-btn-primary">
+          <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <span data-i18n="btnStart">Start</span>
+        </button>
+        <div id="runningBtns" class="running-btns hidden">
+          <button id="pauseBtn" class="action-btn action-btn-warning">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1" />
+              <rect x="14" y="4" width="4" height="16" rx="1" />
+            </svg>
+            <span data-i18n="btnPause">Pause</span>
+          </button>
+          <button id="stopBtn" class="action-btn action-btn-danger">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="1" />
+            </svg>
+            <span data-i18n="btnStop">Stop</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Slide Menu -->
+    <div id="menuOverlay" class="menu-overlay hidden"></div>
+    <aside id="menuPanel" class="menu-panel hidden">
+      <div class="menu-header">
+        <span data-i18n="menuTitle">Settings</span>
+        <button id="closeMenuBtn" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="menu-nav">
+        <button class="menu-item" data-view="whitelist">
+          <span class="menu-icon">&#x1F6E1;&#xFE0F;</span>
+          <span data-i18n="menuWhitelist">Whitelist</span>
+        </button>
+        <button class="menu-item" data-view="logs">
+          <span class="menu-icon">&#x1F4DD;</span>
+          <span data-i18n="menuLogs">Activity Log</span>
+        </button>
+        <button class="menu-item" data-view="history">
+          <span class="menu-icon">&#x1F4CB;</span>
+          <span data-i18n="menuHistory">Unfollow History</span>
+        </button>
+        <button class="menu-item" data-view="exportImport">
+          <span class="menu-icon">&#x1F4E6;</span>
+          <span data-i18n="exportTitle">Export / Import</span>
+        </button>
+        <div class="menu-divider"></div>
+        <div class="menu-item menu-item-lang">
+          <span class="menu-icon">&#x1F310;</span>
+          <span data-i18n="menuLanguage">Language</span>
+          <select id="langSelect" class="lang-select">
+            <option value="auto">Auto</option>
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="pt">Português</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <div class="menu-item menu-item-lang">
+          <span class="menu-icon">&#x1F3A8;</span>
+          <span data-i18n="menuTheme">Theme</span>
+          <select id="themeSelect" class="lang-select">
+            <option value="dark" data-i18n="themeDark">Dark</option>
+            <option value="light" data-i18n="themeLight">Light</option>
+          </select>
+        </div>
+      </nav>
+
+      <div class="menu-footer">
+        <span class="version">v1.1.0</span>
+      </div>
+    </aside>
+
+    <!-- Whitelist View -->
+    <div id="whitelistView" class="sub-view hidden">
+      <div class="sub-header">
+        <button id="backFromWhitelist" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <span data-i18n="whitelistTitle">Whitelist</span>
+      </div>
+      <div class="sub-content">
+        <textarea id="whitelist" class="whitelist-input" data-i18n-placeholder="whitelistPlaceholder"></textarea>
+        <p id="whitelistValidation" class="hint"></p>
+        <p class="hint" data-i18n="whitelistHint">These users will not be unfollowed</p>
+      </div>
+    </div>
+
+    <!-- Logs View -->
+    <div id="logsView" class="sub-view hidden">
+      <div class="sub-header">
+        <button id="backFromLogs" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <span data-i18n="logTitle">Activity Log</span>
+        <button id="clearLogs" class="icon-btn" title="Clear logs">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+          </svg>
+        </button>
+      </div>
+      <div class="sub-content">
+        <div id="logArea" class="log-area"></div>
+      </div>
+    </div>
+
+    <!-- History View -->
+    <div id="historyView" class="sub-view hidden">
+      <div class="sub-header">
+        <button id="backFromHistory" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <span data-i18n="historyTitle">Unfollow History</span>
+        <button id="clearHistory" class="icon-btn" title="Clear history">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+          </svg>
+        </button>
+      </div>
+      <div class="sub-content">
+        <div id="historyArea" class="log-area"></div>
+      </div>
+    </div>
+
+    <!-- Export/Import View -->
+    <div id="exportImportView" class="sub-view hidden">
+      <div class="sub-header">
+        <button id="backFromExportImport" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <span data-i18n="exportTitle">Export / Import</span>
+      </div>
+      <div class="sub-content">
+        <div class="export-import-btns">
+          <button id="exportBtn" class="action-btn action-btn-secondary">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+            </svg>
+            <span data-i18n="menuExport">Export</span>
+          </button>
+          <button id="importBtn" class="action-btn action-btn-secondary">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" />
+            </svg>
+            <span data-i18n="menuImport">Import</span>
+          </button>
+        </div>
+        <textarea id="exportImportArea" class="whitelist-input"
+          placeholder="JSON data will appear here..."></textarea>
+        <p id="exportImportStatus" class="hint"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>
