@@ -13,6 +13,9 @@ Smart speed control, whitelist protection & activity logs.
 
 ## Install
 
+[**Install from Chrome Web Store**](https://chromewebstore.google.com/detail/cpeaigkbonkmgamcdeoflbalglkffeag)
+
+Or load manually:
 1. Download or clone this repository
 2. Open `chrome://extensions/` in Chrome
 3. Enable **Developer mode**
